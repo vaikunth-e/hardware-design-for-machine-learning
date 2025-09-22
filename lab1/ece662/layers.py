@@ -28,10 +28,10 @@ def affine_forward(x, w, b):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    n = x.shape[0]
-    x_flat = x.reshape(n, -1)
+    n = x.shape[0] # x is dimension (N, d_1, d_2, ... , d_k), find dimension N
+    x_flat = x.reshape(n, -1) # reshape to (N, D) where D = d_1 * d_2 * ... * d_k
 
-    out = x_flat @ w + b
+    out = x_flat @ w + b # z = xW + b
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
