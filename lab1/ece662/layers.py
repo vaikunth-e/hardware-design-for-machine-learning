@@ -64,7 +64,13 @@ def affine_backward(dout, cache):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
+    dx = (dout @ w.T).reshape(x.shape) # dx=(dout @ W^T) and reshape (gradient of x must match shape of x)
     
+    n = x.shape[0] 
+    x_flat = x.reshape(n, -1) # flatten x again because z=xW+b uses flattened x
+    dw = x_flat.T @ dout
+
+    db = dout.sum(axis=0) # 1 b is 1 z, L wrt B = L wrt z = dout. sum along N to collapse to 1,M (bias shape) 
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
