@@ -1,0 +1,8 @@
+# lab1 ignores
+lab1/ece662/datasets/
+
+lab1/ece662/models/
+
+lab1/.ipynb_checkpoints/
+
+lab1/ece662/__pycache__/
