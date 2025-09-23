@@ -64,8 +64,13 @@ def affine_backward(dout, cache):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    dx = (dout @ w.T).reshape(x.shape) # dx=(dout @ W^T) and reshape (gradient of x must match shape of x)
-    
+    dx = (dout @ w.T).reshape(x.shape) # dx=(dout @ W^T) and reshape (gradient of x must match shape of x) 
+    # !!!! dx is the UPSTREAM gradient it goes down to the next "backward" call
+    # derivative of inputs to this layer, ->  gradient of prev layers outputs
+    # x of upstream layer is dout or dL_wrt_z of this layer
+    # dout or upstream gradient is derivative of end nnn loss wrt to current layer output, from upper layer input
+    # x w b in cache come from forward pass
+
     n = x.shape[0] 
     x_flat = x.reshape(n, -1) # flatten x again because z=xW+b uses flattened x
     dw = x_flat.T @ dout

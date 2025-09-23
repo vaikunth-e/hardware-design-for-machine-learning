@@ -55,7 +55,11 @@ class TwoLayerNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        self.params['W1'] = np.random.normal(0, weight_scale, (input_dim, hidden_dim))
+        self.params['b1'] = np.zeros(hidden_dim,)
+
+        self.params['W2'] = np.random.normal(0, weight_scale, hidden_dim * num_classes).reshape(hidden_dim, num_classes)
+        self.params['b2'] = np.zeros(num_classes,)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
@@ -88,7 +92,8 @@ class TwoLayerNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        out1, cache1 = affine_relu_forward(X, self.params['W1'], self.params['b1']) # store cache and output of layer 1
+        scores, cache2 = affine_forward(out1, self.params['W2'], self.params['b2']) # same, output layer 2 is logit scores
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
@@ -112,7 +117,17 @@ class TwoLayerNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        loss, dscores = softmax_loss(scores, y) # softmax loss, gradient wrt logits (scores)
+        W1, W2 = self.params['W1'], self.params['W2']
+        loss += 0.5 * self.reg * (np.sum(W1 * W1) + np.sum(W2 * W2)) # L2 regularization
+
+        dout1, grads['W2'], grads['b2'] = affine_backward(dscores, cache2)
+        # pass in layer2 cache and output gradient (affine outputted logits)
+        # get dx (grad of layer2 input, grad of layer1 output), store dw (grad W2) and db (grad b2)
+
+        __, grads['W1'], grads['b1'] = affine_relu_backward(dout1, cache1)
+        # pass in layer1 cache and output gradient (affine_relu outputted affine's input)
+        # drop dx (grad of layer1 input, grad of dataset output), store (grad W1), db (grad b1)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
