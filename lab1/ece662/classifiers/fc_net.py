@@ -25,7 +25,7 @@ class TwoLayerNet(object):
     def __init__(
         self,
         input_dim=3 * 32 * 32,
-        hidden_dim=100,
+        hidden_dims=100,
         num_classes=10,
         weight_scale=1e-3,
         reg=0.0,
@@ -35,7 +35,7 @@ class TwoLayerNet(object):
 
         Inputs:
         - input_dim: An integer giving the size of the input
-        - hidden_dim: An integer giving the size of the hidden layer
+        - hidden_dims: An integer giving the size of the hidden layer
         - num_classes: An integer giving the number of classes to classify
         - weight_scale: Scalar giving the standard deviation for random
           initialization of the weights.
@@ -55,10 +55,10 @@ class TwoLayerNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        self.params['W1'] = np.random.normal(0, weight_scale, (input_dim, hidden_dim))
-        self.params['b1'] = np.zeros(hidden_dim,)
+        self.params['W1'] = np.random.normal(0, weight_scale, (input_dim, hidden_dims))
+        self.params['b1'] = np.zeros(hidden_dims,)
 
-        self.params['W2'] = np.random.normal(0, weight_scale, hidden_dim * num_classes).reshape(hidden_dim, num_classes)
+        self.params['W2'] = np.random.normal(0, weight_scale, hidden_dims * num_classes).reshape(hidden_dims, num_classes)
         self.params['b2'] = np.zeros(num_classes,)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
@@ -122,10 +122,13 @@ class TwoLayerNet(object):
         loss += 0.5 * self.reg * (np.sum(W1 * W1) + np.sum(W2 * W2)) # L2 regularization
 
         dout1, grads['W2'], grads['b2'] = affine_backward(dscores, cache2)
+        dout1, dW, db = affine_backward(dscores, cache2)
+        grads['W2'] += self.reg * self.params['W2']
         # pass in layer2 cache and output gradient (affine outputted logits)
         # get dx (grad of layer2 input, grad of layer1 output), store dw (grad W2) and db (grad b2)
 
         __, grads['W1'], grads['b1'] = affine_relu_backward(dout1, cache1)
+        grads['W1'] += self.reg * self.params['W1']
         # pass in layer1 cache and output gradient (affine_relu outputted affine's input)
         # drop dx (grad of layer1 input, grad of dataset output), store (grad W1), db (grad b1)
 
@@ -206,8 +209,12 @@ class FullyConnectedNet(object):
         # parameters should be initialized to zeros.                               #
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+            
+        layers_dims = [input_dim] + hidden_dims + [num_classes]
 
-        pass
+        for i in range(0, self.num_layers):
+            self.params[f'W{i+1}'] = np.random.normal(0, weight_scale, (layers_dims[i], layers_dims[i+1]))
+            self.params[f'b{i+1}'] = np.zeros(layers_dims[i+1],)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
@@ -269,7 +276,14 @@ class FullyConnectedNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        caches, out = [], X
+        
+        for i in range (1, self.num_layers):
+            out, cache = affine_relu_forward(out, self.params[f'W{i}'], self.params[f'b{i}'])
+            caches.append(cache)
+        
+        scores, cache = affine_forward(out, self.params[f'W{self.num_layers}'], self.params[f'b{self.num_layers}'])
+        caches.append(cache)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
@@ -296,7 +310,19 @@ class FullyConnectedNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        loss, dscores = softmax_loss(scores, y) # softmax loss, gradient wrt logits (scores)
+        W = [self.params[f'W{i}'] for i in range(1,self.num_layers+1)]
+        loss += 0.5 * self.reg * sum(np.sum(w * w) for w in W) # L2 regularization
+          
+        dout, grads[f'W{self.num_layers}'], grads[f'b{self.num_layers}'] = affine_backward(dscores, caches[-1])
+        # pass in layer2 cache and output gradient (affine outputted logits)
+        # get dx (grad of layer2 input, grad of layer1 output), store dw (grad W2) and db (grad b2)
+
+        for i in range(1, self.num_layers):
+            dout, grads[f'W{self.num_layers - i}'], grads[f'b{self.num_layers - i}'] = affine_relu_backward(dout, caches[-1 - i])
+            grads[f'W{self.num_layers - i}'] += self.reg * self.params[f'W{self.num_layers - i}']
+        # pass in layer1 cache and output gradient (affine_relu outputted affine's input)
+        # drop dx (grad of layer1 input, grad of dataset output), store (grad W1), db (grad b1)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
