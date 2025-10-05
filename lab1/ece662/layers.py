@@ -208,8 +208,8 @@ def batchnorm_forward(x, gamma, beta, bn_param):
         #######################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        sample_mean = np.mean(x, axis=0) # create a (D,) array w avg of the other rows in x
-        sample_var = np.var(x, axis=0) # create a (D, array) w variance of each element in other rows of x
+        sample_mean = np.mean(x, axis=0) # create a (D,) array w avg of each ftr col in x
+        sample_var = np.var(x, axis=0) # create a (D, array) w variance of each column
 
         running_mean = momentum * running_mean + (1 - momentum) * sample_mean # calculate running_ values for test pass
         running_var = momentum * running_var + (1 - momentum) * sample_var
@@ -388,7 +388,14 @@ def layernorm_forward(x, gamma, beta, ln_param):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    sample_mean = np.mean(x, axis=1, keepdims=True) # create a (N,) array w avg of each sample row in x
+    sample_var = np.var(x, axis=1, keepdims=True) # create a (N, array) w variance of each row
+
+    xnorm = (x - sample_mean)/np.sqrt(sample_var + eps) # layer norm algorithm
+
+    y = gamma * xnorm + beta
+
+    out, cache = y, (gamma, beta, xnorm, sample_mean, sample_var, eps)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -423,7 +430,18 @@ def layernorm_backward(dout, cache):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    gamma, beta, xnorm, sample_mean, sample_var, eps = cache  
+    
+    dgamma = np.sum(dout * xnorm, axis=0)
+    dbeta = np.sum(dout, axis=0)
+
+    d = dout.shape[1]
+
+    s = np.sqrt(sample_var + eps)
+    
+    dxnorm = dout * gamma # gradient of loss wrt to xnorm
+
+    dx = (1/(s*d)) * (d*dxnorm - np.sum(dxnorm, axis=1, keepdims=True) - xnorm*np.sum(dxnorm*xnorm, axis=1, keepdims=True))
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
