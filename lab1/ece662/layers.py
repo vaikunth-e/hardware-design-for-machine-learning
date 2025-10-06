@@ -580,7 +580,28 @@ def conv_forward_naive(x, w, b, conv_param):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    N, C, H, W = x.shape
+    F, _, HH, WW = w.shape
+    stride, pad = conv_param['stride'], conv_param['pad']
+
+    x_pad = np.pad(x, pad_width=((0,0), (0,0), (pad, pad), (pad, pad)), mode="constant", constant_values=0)
+
+    H_out = (H + 2*pad - HH)//stride + 1
+    W_out = (W + 2*pad - WW)//stride + 1
+    out = np.zeros((N, F, H_out, W_out), dtype=x.dtype)
+
+    # naive loops
+    for n in range(N):
+        for f in range(F):
+            for i in range(H_out):
+                h0 = i*stride
+                h1 = h0 + HH
+                for j in range(W_out):
+                    w0 = j*stride
+                    w1 = w0 + WW
+                    # (C, HH, WW)
+                    region = x_pad[n, :, h0:h1, w0:w1]
+                    out[n, f, i, j] = np.sum(region * w[f]) + b[f]
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -609,7 +630,38 @@ def conv_backward_naive(dout, cache):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    x, w, b, conv_param = cache
+    stride, pad = conv_param['stride'], conv_param['pad']
+    N, C, H, W = x.shape
+    F, _, HH, WW = w.shape
+    _, _, H_out, W_out = dout.shape    
+    x_pad = np.pad(x, pad_width=((0,0), (0,0), (pad, pad), (pad, pad)), mode="constant", constant_values=0)
+
+    dx = np.zeros_like(x, dtype=x.dtype)
+    dx_pad = np.zeros_like(x_pad, dtype=x.dtype)
+    dw = np.zeros_like(w, dtype=w.dtype)
+    db = np.zeros_like(b, dtype=b.dtype)
+
+    # db: sum over batch and space
+    db = np.sum(dout, axis=(0, 2, 3))  # (F,)
+    
+    for n in range(N):
+        for f in range(F):
+            for i in range(H_out):
+                h0 = i*stride
+                h1 = h0 + HH
+                for j in range(W_out):
+                    w0 = j*stride
+                    w1 = w0 + WW
+                    # gradient wrt filter
+                    dw[f] += x_pad[n, :, h0:h1, w0:w1] * dout[n, f, i, j]
+                    # gradient wrt input (padded)
+                    dx_pad[n, :, h0:h1, w0:w1] += w[f] * dout[n, f, i, j]
+
+    if pad > 0:
+        dx = dx_pad[:, :, pad:-pad, pad:-pad]
+    else:
+        dx = dx_pad
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
