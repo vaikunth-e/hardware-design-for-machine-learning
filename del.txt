@@ -1,0 +1,16 @@
+pystray
+PySimpleGUI
+PySide6_Addons
+PySide6_Essentials
+shiboken6
+plyer
+transformers
+tokenizers
+sentencepiece
+huggingface-hub
+nltk
+sacrebleu
+unbabel-comet
+bert-score
+entmax
+
