@@ -20,13 +20,15 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module unit_slice(
-    input logic signed [7:0] x_in,
-    input logic signed [7:0] w,
-    input logic signed [7:0] y_in,
+module unit_slice #(
+    parameter int XW = 8, 
+    parameter int YW = 32)(
+    input logic signed [XW-1:0] x_in,
+    input logic signed [XW-1:0] w,
+    input logic signed [YW-1:0] y_in,
     input logic clk,
-    output logic signed [7:0] x_out,
-    output logic signed [7:0] y_out
+    output logic signed [XW-1:0] x_out,
+    output logic signed [YW-1:0] y_out
     );
 
     always_ff @ (posedge clk)

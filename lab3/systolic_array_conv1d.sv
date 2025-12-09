@@ -20,21 +20,27 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module systolic_array_conv1d #(parameter int N = 3)(
-    input logic signed [7:0] x_in,
-    input logic signed [7:0] w [N],
-    input logic signed [7:0] y_in,
+module systolic_array_conv1d #(
+    parameter int N = 3,
+    parameter int XW = 8,
+    parameter int YW = 32)(
+    input logic signed [XW-1:0] x_in,
+    input logic signed [XW-1:0] w [N],
+    input logic signed [YW-1:0] y_in,
     input logic clk,
-    output logic signed [7:0] y_out
+    output logic signed [YW-1:0] y_out
     );
     
-    logic signed [7:0] x_bus [N+1];
-    logic signed [7:0] y_bus [N+1];
+    logic signed [XW-1:0] x_bus [N+1];
+    logic signed [YW-1:0] y_bus [N+1];
     
     genvar i;
     generate
         for (i = 0; i < N; i++) begin: SL
-            unit_slice u (
+            unit_slice #(
+                .XW(XW), 
+                .YW(YW)) 
+                u (
                 .clk(clk),
                 .x_in (x_bus[i+1]),
                 .x_out(x_bus[i]),
