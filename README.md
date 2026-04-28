@@ -1,1 +1,1 @@
-ECE 562 Hardware Organization for Machine Learning
+Hardware Organization for Machine Learning
